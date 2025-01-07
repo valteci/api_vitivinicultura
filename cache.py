@@ -2,7 +2,8 @@ from request_data import Request_data
 import os
 
 from scrap_parameters import \
-    SAVING_PATH_PRODUCAO
+    SAVING_PATH_PRODUCAO, \
+    SAVING_PATH_COMERCIALIZACAO
 
 class Cache:
     def __init__(self):
@@ -19,7 +20,9 @@ class Cache:
             self.save_processamento(paginas)
 
     def update_comercializacao(self):
-        pass
+        request = Request_data()
+        html_pages = request.request_comercializacao()
+        self.save_comercializacao(html_pages)
 
     def update_importacao(self):
         pass
@@ -47,3 +50,11 @@ class Cache:
                 saving_path = folder + file_name
                 with open(saving_path, 'w') as file:
                     file.write(page[0])
+
+    def save_comercializacao(self, html_pages: list[tuple]):
+        folder = os.path.abspath('.') + SAVING_PATH_COMERCIALIZACAO
+        for page in html_pages:
+            file_name = f'/comercializacao{page[1]}.html'
+            saving_path = folder + file_name
+            with open(saving_path, 'w') as file:
+                file.write(page[0])

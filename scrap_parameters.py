@@ -36,4 +36,4 @@ SUB_EXPORTACAO = {
 }
 
 SAVING_PATH_PRODUCAO = '/site/producao'
-
+SAVING_PATH_COMERCIALIZACAO = '/site/comercializacao'

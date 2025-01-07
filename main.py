@@ -1,5 +1,5 @@
 from cache import Cache
 save = Cache()
-save.update_processamento()
+save.update_comercializacao()
 
 

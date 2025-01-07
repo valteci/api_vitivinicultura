@@ -21,7 +21,6 @@ class Request_data:
     }
 
     def request_producao(self) -> list[tuple]:
-        #saving_dic = os.path.abspath('.') + '/site/producao/'
         html_pages = []
     
         for ano in range(MIN_YEAR, MAX_YEAR + 1):
@@ -88,6 +87,39 @@ class Request_data:
                             print("Tentando novamente...")
                 
             yield ({subopc: html_pages[subopc]})
+
+
+    def request_comercializacao(self) -> list[tuple]:
+        html_pages = []
+    
+        for ano in range(MIN_YEAR, MAX_YEAR + 1):
+            url = BASE_URL + '?ano=' + str(ano) + '&opcao=' + Opcao.COMERCIALIZACAO.value
+            success = False  # Flag para indicar sucesso
+            attempt = 0      # Contador de tentativas
+            
+            while not success:  # Tentativas indefinidas até obter sucesso
+                try:
+                    attempt += 1
+                    print(f"Tentativa {attempt} para o ano {ano}...")
+                    self.wait()  # Espera de 10 a 15 segundos
+                    response = requests.get(url, headers=self.HEADERS, timeout=20)
+                    response.raise_for_status()  # Lança exceção para códigos de erro HTTP
+                    html_content = response.text
+                    page = (html_content, ano)
+                    html_pages.append(page)
+                    print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
+                    success = True  # Requisição bem-sucedida, sai do loop
+                except requests.HTTPError as http_err:
+                    print(f"Erro HTTP para o ano {ano}: {http_err}")
+                except requests.Timeout:
+                    print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
+                except RequestException as req_err:
+                    print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
+                finally:
+                    if not success:
+                        print("Tentando novamente...")
+
+        return html_pages
 
 
     def wait(self):
