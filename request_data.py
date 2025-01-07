@@ -122,6 +122,43 @@ class Request_data:
         return html_pages
 
 
+    def request_importacao(self):
+        html_pages = {}
+        url_parte_fixa = f'{BASE_URL}?opcao={Opcao.IMPORTACAO.value}'
+        for subopc in SUB_IMPORTACAO:
+            url_opcao = f'{url_parte_fixa}&subopcao={SUB_IMPORTACAO[subopc]}'
+            html_pages[subopc] = []
+            for ano in range(MIN_YEAR, MAX_YEAR + 1):
+                url = f'{url_opcao}&ano={ano}'
+                success = False  # Flag para indicar sucesso
+                attempt = 0      # Contador de tentativas
+                
+                while not success:
+                    try:
+                        attempt += 1
+                        print(f"Tentativa {attempt} para o ano {ano}...")
+                        self.wait()  # Espera de 10 a 15 segundos
+                        response = requests.get(url, headers=self.HEADERS, timeout=20)
+                        response.raise_for_status()  # Lança exceção para códigos de erro HTTP
+                        html_content = response.text
+                        page = (html_content, ano)
+                        html_pages[subopc].append(page)
+                        print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
+                        success = True  # Requisição bem-sucedida, sai do loop
+                    except requests.HTTPError as http_err:
+                        print(f"Erro HTTP para o ano {ano}: {http_err}")
+                    except requests.Timeout:
+                        print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
+                    except RequestException as req_err:
+                        print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
+                    finally:
+                        if not success:
+                            print("Tentando novamente...")
+                
+            yield ({subopc: html_pages[subopc]})
+
+
+
     def wait(self):
         MIN_TIME = 10
         MAX_TIME = 15

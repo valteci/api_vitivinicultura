@@ -25,7 +25,9 @@ class Cache:
         self.save_comercializacao(html_pages)
 
     def update_importacao(self):
-        pass
+        request = Request_data()
+        for paginas in request.request_importacao():
+            self.save_importacao(paginas)
 
     def update_exportacao(self):
         pass
@@ -58,3 +60,14 @@ class Cache:
             saving_path = folder + file_name
             with open(saving_path, 'w') as file:
                 file.write(page[0])
+
+    def save_importacao(self, html_pages: dict):
+        for subopcao in html_pages:
+            folder = os.path.abspath('.') + f'/site/importacao/{subopcao}'
+            os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
+            for page in html_pages[subopcao]:
+                file_name = f'/{subopcao}{page[1]}.html'
+                saving_path = folder + file_name
+                with open(saving_path, 'w') as file:
+                    file.write(page[0])
+        pass
