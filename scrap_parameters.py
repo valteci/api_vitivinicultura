@@ -17,7 +17,7 @@ SUB_PROCESSAMENTO = {
     'viniferas'             : 'subopt_01',
     'americanas_e_hibridas' : 'subopt_02',
     'uvas_mesa'             : 'subopt_03',
-    'sem_classificao'       : 'subopt_04', 
+    'sem_classificacao'     : 'subopt_04', 
 }
 
 SUB_IMPORTACAO = {

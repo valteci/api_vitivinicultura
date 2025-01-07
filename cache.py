@@ -14,7 +14,9 @@ class Cache:
         self.save_producao(html_pages)
 
     def update_processamento(self):
-        pass
+        request = Request_data()
+        for paginas in request.request_processamento():
+            self.save_processamento(paginas)
 
     def update_comercializacao(self):
         pass
@@ -35,3 +37,13 @@ class Cache:
             saving_path = folder + file_name
             with open(saving_path, 'w') as file:
                 file.write(page[0])
+
+    def save_processamento(self, html_pages: dict):
+        for subopcao in html_pages:
+            folder = os.path.abspath('.') + f'/site/processamento/{subopcao}'
+            os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
+            for page in html_pages[subopcao]:
+                file_name = f'/{subopcao}{page[1]}.html'
+                saving_path = folder + file_name
+                with open(saving_path, 'w') as file:
+                    file.write(page[0])
