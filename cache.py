@@ -30,7 +30,9 @@ class Cache:
             self.save_importacao(paginas)
 
     def update_exportacao(self):
-        pass
+        request = Request_data()
+        for paginas in request.request_exportacao():
+            self.save_exportacao(paginas)
 
     def update_todos(self):
         pass
@@ -70,4 +72,17 @@ class Cache:
                 saving_path = folder + file_name
                 with open(saving_path, 'w') as file:
                     file.write(page[0])
-        pass
+
+
+    def save_exportacao(self, html_pages: dict):
+        for subopcao in html_pages:
+            folder = os.path.abspath('.') + f'/site/exportacao/{subopcao}'
+            os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
+            for page in html_pages[subopcao]:
+                file_name = f'/{subopcao}{page[1]}.html'
+                saving_path = folder + file_name
+                with open(saving_path, 'w') as file:
+                    file.write(page[0])
+
+
+
