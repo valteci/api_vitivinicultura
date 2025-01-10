@@ -35,5 +35,5 @@ SUB_EXPORTACAO = {
     'suco_uva'      : 'subopt_04',
 }
 
-SAVING_PATH_PRODUCAO = '/site/producao'
-SAVING_PATH_COMERCIALIZACAO = '/site/comercializacao'
+SAVING_PATH_PRODUCAO = 'data_cache/site/producao'
+SAVING_PATH_COMERCIALIZACAO = 'data_cache/site/comercializacao'

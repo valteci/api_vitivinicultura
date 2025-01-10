@@ -3,7 +3,7 @@ from requests.exceptions import RequestException
 from time import sleep
 from random import randint
 
-from scrap_parameters import \
+from src.scrap_parameters import \
     Opcao, \
     SUB_PROCESSAMENTO, \
     SUB_IMPORTACAO, \

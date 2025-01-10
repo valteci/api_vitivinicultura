@@ -1,7 +1,7 @@
 from request_data import Request_data
 import os
 
-from scrap_parameters import \
+from src.scrap_parameters import \
     SAVING_PATH_PRODUCAO, \
     SAVING_PATH_COMERCIALIZACAO
 
@@ -47,7 +47,7 @@ class Cache:
 
     def save_processamento(self, html_pages: dict):
         for subopcao in html_pages:
-            folder = os.path.abspath('.') + f'/site/processamento/{subopcao}'
+            folder = os.path.abspath('.') + f'data_cache/site/processamento/{subopcao}'
             os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
             for page in html_pages[subopcao]:
                 file_name = f'/{subopcao}{page[1]}.html'
@@ -65,7 +65,7 @@ class Cache:
 
     def save_importacao(self, html_pages: dict):
         for subopcao in html_pages:
-            folder = os.path.abspath('.') + f'/site/importacao/{subopcao}'
+            folder = os.path.abspath('.') + f'data_cache/site/importacao/{subopcao}'
             os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
             for page in html_pages[subopcao]:
                 file_name = f'/{subopcao}{page[1]}.html'
@@ -76,7 +76,7 @@ class Cache:
 
     def save_exportacao(self, html_pages: dict):
         for subopcao in html_pages:
-            folder = os.path.abspath('.') + f'/site/exportacao/{subopcao}'
+            folder = os.path.abspath('.') + f'data_cache/site/exportacao/{subopcao}'
             os.makedirs(folder, exist_ok=True)  # Garante que o diretório existe
             for page in html_pages[subopcao]:
                 file_name = f'/{subopcao}{page[1]}.html'
