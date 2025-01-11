@@ -37,3 +37,6 @@ SUB_EXPORTACAO = {
 
 SAVING_PATH_PRODUCAO = 'data_cache/site/producao'
 SAVING_PATH_COMERCIALIZACAO = 'data_cache/site/comercializacao'
+SAVING_PATH_EXPORTACAO = 'data_cache/site/exportacao'
+SAVING_PATH_IMPORTACAO = 'data_cache/site/importacao'
+SAVING_PATH_PROCESSAMENTO = 'data_cache/site/processamento'
