@@ -2,8 +2,8 @@ from flask import Flask, request, Response
 import json
 import requests
 import os
-from scraping import scraping
-from scrap_parameters import \
+from src.scraping.scrap import Scraping
+from src.scrap_parameters import \
     BASE_URL, \
     Opcao, \
     SAVING_PATH_COMERCIALIZACAO, \
@@ -36,11 +36,11 @@ def comercializacao():
         response.raise_for_status() # lança exceção se algo deu errado
         html = response.text
     except:
-        path = os.path.abspath('..') + '/' + SAVING_PATH_COMERCIALIZACAO + '/'
+        path = SAVING_PATH_COMERCIALIZACAO + '/'
         file_name = f'comercializacao{ano}.html'
         html = open(path + file_name).read()
     
-    scrap = scraping.Scraping()
+    scrap = Scraping()
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
@@ -65,13 +65,14 @@ def producao():
         response.raise_for_status() # lança exceção se algo deu errado
         html = response.text
     except:
-        path = os.path.abspath('..') + '/' + SAVING_PATH_PRODUCAO + '/'
+        #print(f'{os.path.abspath('.')}')
+        path = SAVING_PATH_PRODUCAO + '/'
         file_name = f'producao{ano}.html'
         html = open(path + file_name).read()
 
     
     # scraping!
-    scrap = scraping.Scraping()
+    scrap = Scraping()
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
@@ -102,11 +103,11 @@ def exportacao():
         response.raise_for_status()
         html = response.text
     except:
-        path = os.path.abspath('..') + '/' + SAVING_PATH_EXPORTACAO + f'/{arg_subopc}/'
+        path = SAVING_PATH_EXPORTACAO + f'/{arg_subopc}/'
         file_name = f'{arg_subopc}{ano}.html'
         html = open(path + file_name).read()
         
-    scrap = scraping.Scraping()
+    scrap = Scraping()
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
@@ -136,11 +137,11 @@ def importacao():
         response.raise_for_status()
         html = response.text
     except:
-        path = os.path.abspath('..') + '/' + SAVING_PATH_IMPORTACAO + f'/{arg_subopc}/'
+        path = SAVING_PATH_IMPORTACAO + f'/{arg_subopc}/'
         file_name = f'{arg_subopc}{ano}.html'
         html = open(path + file_name).read()
     
-    scrap = scraping.Scraping()
+    scrap = Scraping()
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
@@ -155,7 +156,6 @@ def processamento():
     subopc = SUB_PROCESSAMENTO[arg_subopc]
     html = ''
     try:
-        raise 1
         url_skeleton    = BASE_URL + '?opcao={}&ano={}&subopcao={}'
         opcao           = Opcao.PROCESSAMENTO.value
         url             = url_skeleton.format(opcao, ano, subopc)    
@@ -172,11 +172,11 @@ def processamento():
         response.raise_for_status()
         html = response.text
     except:
-        path = os.path.abspath('..') + '/' + SAVING_PATH_PROCESSAMENTO + f'/{arg_subopc}/'
+        path = SAVING_PATH_PROCESSAMENTO + f'/{arg_subopc}/'
         file_name = f'{arg_subopc}{ano}.html'
         html = open(path + file_name).read()
     
-    scrap = scraping.Scraping()
+    scrap = Scraping()
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
