@@ -1,17 +1,20 @@
-# Use uma imagem base oficial do Python
+# imagem base oficial do Python
 FROM python:3.10-slim
 
-# Defina o diretório de trabalho dentro do contêiner
+# Define o diretório de trabalho dentro do contêiner
 WORKDIR /app
 
-# Copie os arquivos do projeto para o contêiner
+# Copia os arquivos do projeto para o contêiner
 COPY . .
 
-# Instale as dependências listadas no requirements.txt
+# Instala as dependências listadas no requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Exponha a porta em que a aplicação vai rodar (ajuste conforme necessário)
+# Exponhe a porta em que a aplicação vai rodar
 EXPOSE 5000
 
-# Comando para iniciar a aplicação
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+# Variável de ambiente que define o ambiente de execução da API
+ENV FLASK_ENV="production"
+
+# Comando para iniciar a aplicação com Gunicorn (ou flask de estiver de dev)
+CMD ["sh", "-c", "if [ \"${FLASK_ENV:-production}\" = 'development' ]; then flask run --host=0.0.0.0 --port=5000; else gunicorn -w 4 -b 0.0.0.0:5000 app:app; fi"]
