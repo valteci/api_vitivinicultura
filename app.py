@@ -1,4 +1,11 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
+from flask_jwt_extended import \
+    JWTManager, \
+    create_access_token, \
+    jwt_required, \
+    get_jwt_identity
+
+from dotenv import load_dotenv
 import json
 import requests
 import os
@@ -16,7 +23,31 @@ from src.scrap_parameters import \
     SUB_PROCESSAMENTO
 
 
+load_dotenv()
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = 'asdfasdfasdfasfd'
+jwt = JWTManager(app)
+
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if username == 'admin' and password == '123':
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
+
+    return jsonify({"msg": "Usuário ou senha inválidos"}), 401
+
+
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logge_in_as=current_user), 200
+
 
 @app.route('/comercializacao', methods=['GET'])
 def comercializacao():
