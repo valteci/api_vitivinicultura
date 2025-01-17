@@ -5,10 +5,12 @@ from flask_jwt_extended import \
     jwt_required, \
     get_jwt_identity
 
+
+from data.sqlite import Connection
 from dotenv import load_dotenv
 import json
 import requests
-import os
+from datetime import timedelta
 from src.scraping.scrap import Scraping
 from src.scrap_parameters import \
     BASE_URL, \
@@ -22,34 +24,45 @@ from src.scrap_parameters import \
     SUB_IMPORTACAO, \
     SUB_PROCESSAMENTO
 
-
+conn = Connection()
 load_dotenv()
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'asdfasdfasdfasfd'
+app.config['JWT_SECRET_KEY'] = 'aeesdfasdfasdfasfd'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)
 
 
 @app.route('/signup', methods=['POST'])
 def signup():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        conn.create_user(email, password)
+    except Exception as e:
+        return str(e), 500
+
+    return jsonify({'msg': 'Usuário cadastrado com sucesso!'}), 200
+
+
+@app.route('/signin', methods=['POST'])
+def signin():
     data = request.get_json()
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
 
-    if username == 'admin' and password == '123':
-        access_token = create_access_token(identity=username)
+    try:
+        user = conn.validate_user(email, password)
+        access_token = create_access_token(identity=user.email)
         return jsonify(access_token=access_token), 200
+        
+    except Exception as e:
+        return jsonify({'msg': str(e)}), 401
 
-    return jsonify({"msg": "Usuário ou senha inválidos"}), 401
-
-
-@app.route('/protected', methods=['GET'])
-@jwt_required()
-def protected():
-    current_user = get_jwt_identity()
-    return jsonify(logge_in_as=current_user), 200
 
 
 @app.route('/comercializacao', methods=['GET'])
+@jwt_required()
 def comercializacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
@@ -79,6 +92,7 @@ def comercializacao():
 
 
 @app.route('/producao', methods=['GET'])
+@jwt_required()
 def producao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
@@ -111,6 +125,7 @@ def producao():
 
 
 @app.route('/exportacao', methods=['GET'])
+@jwt_required()
 def exportacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
@@ -145,6 +160,7 @@ def exportacao():
 
 
 @app.route('/importacao', methods=['GET'])
+@jwt_required()
 def importacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
@@ -180,6 +196,7 @@ def importacao():
 
 
 @app.route('/processamento', methods=['GET'])
+@jwt_required()
 def processamento():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
@@ -211,7 +228,5 @@ def processamento():
     data = scrap.extrac_table(html)
     response_data = json.dumps(data, ensure_ascii=False)
     return Response(response_data, status=200, mimetype='application/json')
-
-
 
 

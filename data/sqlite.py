@@ -42,19 +42,29 @@ class Connection:
         """Adiciona um novo usuário ao banco de dados."""
         conn = self._connect()
         cursor = conn.cursor()
+        if email == None or password == None:
+            raise ValueError(
+                f'Erro: campos "email" ou "password" faltando!'
+            )
+
+
         try:
             cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
             conn.commit()
         except sqlite3.IntegrityError:
-            raise ValueError(f"Usuário com email {email} já existe.")
+            raise ValueError(f"Email {email} já cadastrado!")
+        except Exception as e:
+            raise ValueError(str(e))
 
-    def query_user(self, email: str) -> User:
+    def validate_user(self, email: str, password: str) -> User:
         """Busca um usuário pelo email."""
         conn = self._connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT email, password FROM users WHERE email = ?", (email,))
+        hash_passw = password
+        cursor.execute("SELECT email, password FROM users WHERE email = ? and password = ?", (email, hash_passw))
         result = cursor.fetchone()
+
         if result:
             return User(email=result[0], password=result[1])
         else:
-            raise ValueError(f"Usuário com email {email} não encontrado.")
+            raise ValueError(f"Invalid username or password!")
