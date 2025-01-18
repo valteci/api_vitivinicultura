@@ -4,7 +4,8 @@ from flask_jwt_extended import \
     jwt_required
 
 from src.utils import \
-    comercializacao
+    comercializacao, \
+    producao
 
 from src.scrap_parameters import MAX_YEAR, MIN_YEAR
 
@@ -55,6 +56,22 @@ class App_controller:
         return response_data
 
 
+    def producao(self, request):
+        ano = request.args.get('ano', type=int)
+        ano = ano or MAX_YEAR
+
+        if ano < MIN_YEAR or ano > MAX_YEAR:
+            raise ValueError(f'year must be in the range {MIN_YEAR} <= year <= {MAX_YEAR}')
+
+        html = ''
+        try:
+            html = producao.request_html(ano)
+        except:
+            html = producao.read_html_from_cache(ano)
+
+        data = producao.scraping_html(html)
+        response_data = json.dumps(data, ensure_ascii=False)
+        return response_data
 
 
 

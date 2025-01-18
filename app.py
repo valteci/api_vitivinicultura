@@ -75,38 +75,13 @@ def comercializacao():
 @app.route('/producao', methods=['GET'])
 @jwt_required()
 def producao():
-    ano = request.args.get('ano', type=int)
-    ano = ano or 2023
-
-    if ano < 1970 or ano > 2023:
-        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
-    
-    html = ''
-    # tenta fazer a requisição para o site da embrapa
     try:
-        args = f'?opcao={Opcao.PRODUCAO.value}&ano={ano}'
-        url = BASE_URL + args
-
-        HEADERS = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-        }
-
-        response = requests.get(url, headers=HEADERS, timeout=20)
-        response.raise_for_status() # lança exceção se algo deu errado
-        html = response.text
-    except:
-        #print(f'{os.path.abspath('.')}')
-        path = SAVING_PATH_PRODUCAO + '/'
-        file_name = f'producao{ano}.html'
-        html = open(path + file_name).read()
-
-    
-    # scraping!
-    scrap = Scraping()
-    data = scrap.extrac_table(html)
-    response_data = json.dumps(data, ensure_ascii=False)
-    return Response(response_data, status=200, mimetype='application/json')
-
+        controller = App_controller()
+        data = controller.producao(request)
+        return data, 200
+        
+    except Exception as e:
+        return jsonify({'msg': str(e)}), 500
 
 
 @app.route('/exportacao', methods=['GET'])
