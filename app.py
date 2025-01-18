@@ -87,47 +87,13 @@ def producao():
 @app.route('/exportacao', methods=['GET'])
 @jwt_required()
 def exportacao():
-    ano = request.args.get('ano', type=int)
-    ano = ano or 2023
-
-    if ano < 1970 or ano > 2023:
-        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
-
-    arg_subopc = request.args.get('subopc', type=str)
-
-    if not arg_subopc:
-        return jsonify({'msg': f"The argument 'subopc' is required!"}), 500
-
-    if (arg_subopc not in SUB_EXPORTACAO.keys()):
-        return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
-
-    subopc = SUB_EXPORTACAO[arg_subopc]
-    html = ''
     try:
-        url_skeleton    = BASE_URL + '?opcao={}&ano={}&subopcao={}'
-        opcao           = Opcao.EXPORTACAO.value
-        url             = url_skeleton.format(opcao, ano, subopc)    
+        controller = App_controller()
+        data = controller.exportacao(request)
+        return data, 200
 
-        HEADERS = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            )
-        }
-
-        response = requests.get(url, headers=HEADERS, timeout=20)
-        response.raise_for_status()
-        html = response.text
-    except:
-        path = SAVING_PATH_EXPORTACAO + f'/{arg_subopc}/'
-        file_name = f'{arg_subopc}{ano}.html'
-        html = open(path + file_name).read()
-        
-    scrap = Scraping()
-    data = scrap.extrac_table(html)
-    response_data = json.dumps(data, ensure_ascii=False)
-    return Response(response_data, status=200, mimetype='application/json')
+    except Exception as e:
+        return jsonify({'msg': str(e)}), 500
 
 
 

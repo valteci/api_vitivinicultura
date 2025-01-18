@@ -5,9 +5,13 @@ from flask_jwt_extended import \
 
 from src.utils import \
     comercializacao, \
-    producao
+    producao, \
+    exportacao
 
-from src.scrap_parameters import MAX_YEAR, MIN_YEAR
+from src.scrap_parameters import \
+    MAX_YEAR, \
+    MIN_YEAR, \
+    SUB_EXPORTACAO
 
 import json
 
@@ -74,7 +78,30 @@ class App_controller:
         return response_data
 
 
+    def exportacao(self, request):
+        ano         = request.args.get('ano', type=int)
+        ano         = ano or 2023
+        arg_subopc  = request.args.get('subopc', type=str)
+
+        if ano < MIN_YEAR or ano > MAX_YEAR:
+            raise ValueError(f'year must be in the range {MIN_YEAR} <= year <= {MAX_YEAR}')
+
+        if not arg_subopc:
+            raise ValueError(f"The argument 'subopc' is required!")
+
+        if (arg_subopc not in SUB_EXPORTACAO.keys()):
+            raise ValueError(f"The sub-option '{arg_subopc}' does not exist!")
 
 
+        subopc  = SUB_EXPORTACAO[arg_subopc]
+        html    = ''
+        try:
+            html = exportacao.request_html(ano, subopc)
+        except:
+            html = exportacao.read_html_from_cache(ano, arg_subopc)
 
 
+        data            = exportacao.scraping_html(html)
+        response_data   = json.dumps(data, ensure_ascii=False)
+        
+        return response_data
