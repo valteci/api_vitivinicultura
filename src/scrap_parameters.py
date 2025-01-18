@@ -5,6 +5,10 @@ BASE_URL = 'http://vitibrasil.cnpuv.embrapa.br/index.php'
 MIN_YEAR = 1970
 MAX_YEAR = 2023
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+}
+
 class Opcao(Enum):
     PRODUCAO        = 'opt_02'
     PROCESSAMENTO   = 'opt_03'
@@ -35,8 +39,8 @@ SUB_EXPORTACAO = {
     'suco_uva'      : 'subopt_04',
 }
 
-SAVING_PATH_PRODUCAO = 'data_cache/site/producao'
+SAVING_PATH_PRODUCAO        = 'data_cache/site/producao'
 SAVING_PATH_COMERCIALIZACAO = 'data_cache/site/comercializacao'
-SAVING_PATH_EXPORTACAO = 'data_cache/site/exportacao'
-SAVING_PATH_IMPORTACAO = 'data_cache/site/importacao'
-SAVING_PATH_PROCESSAMENTO = 'data_cache/site/processamento'
+SAVING_PATH_EXPORTACAO      = 'data_cache/site/exportacao'
+SAVING_PATH_IMPORTACAO      = 'data_cache/site/importacao'
+SAVING_PATH_PROCESSAMENTO   = 'data_cache/site/processamento'

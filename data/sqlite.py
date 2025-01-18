@@ -18,11 +18,14 @@ class Connection:
         self.db_path = Path("data/storage/database.db")
         self._connection = None
 
+
+
     def _connect(self):
         """Estabelece uma conexão com o banco de dados."""
         if not self._connection:
             self._connection = sqlite3.connect(self.db_path)
         return self._connection
+
 
     def create_database(self) -> None:
         """Cria o banco de dados e a tabela de usuários, caso não exista."""
@@ -39,24 +42,27 @@ class Connection:
             ''')
             conn.commit()
 
+
+
     def create_user(self, email: str, password: str) -> None:
         """Adiciona um novo usuário ao banco de dados."""
         conn = self._connect()
         cursor = conn.cursor()
         if email == None or password == None:
             raise ValueError(
-                f'Erro: campos "email" ou "password" faltando!'
+                "Missing fields: 'email' or 'password'!"
             )
-
 
         try:
             hash_pass = sha256(password.encode()).hexdigest()
             cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hash_pass))
             conn.commit()
         except sqlite3.IntegrityError:
-            raise ValueError(f"Email {email} já cadastrado!")
+            raise ValueError(f"Email {email} is already registered!")
         except Exception as e:
             raise ValueError(str(e))
+
+
 
     def validate_user(self, email: str, password: str) -> User:
         """Busca um usuário pelo email."""

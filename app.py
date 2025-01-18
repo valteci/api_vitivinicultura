@@ -6,7 +6,7 @@ from flask_jwt_extended import \
 
 
 from data.sqlite import Connection
-from dotenv import load_dotenv
+from src.controller.app_controller import App_controller
 import json
 import requests
 import os
@@ -24,36 +24,35 @@ from src.scrap_parameters import \
     SUB_IMPORTACAO, \
     SUB_PROCESSAMENTO
 
-conn = Connection()
-load_dotenv()
+
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+
+conn = Connection()
+#app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = 'SAJDFHASHFASHF8E9YTEFHAOSPD'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)
+
 
 
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
-        data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
-        conn.create_user(email, password)
-    except Exception as e:
-        return str(e), 500
+        controller = App_controller()
+        controller.signup(request, conn)
 
-    return jsonify({'msg': 'Usuário cadastrado com sucesso!'}), 200
+    except Exception as e:
+        return jsonify({'msg': str(e)}), 500
+
+    return jsonify({'msg': 'User registered successfully!'}), 200
+
 
 
 @app.route('/signin', methods=['POST'])
 def signin():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
     try:
-        user = conn.validate_user(email, password)
-        access_token = create_access_token(identity=user.email)
+        controller = App_controller()
+        access_token = controller.signin(request, conn)
         return jsonify(access_token=access_token), 200
         
     except Exception as e:
@@ -64,35 +63,13 @@ def signin():
 @app.route('/comercializacao', methods=['GET'])
 @jwt_required()
 def comercializacao():
-    ano = request.args.get('ano', type=int)
-    ano = ano or 2023
-
-    if ano < 1970 or ano > 2023:
-        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
-
-    html = ''
-    # tenta fazer a requisição para o site da embrapa
     try:
-        args = f'?opcao={Opcao.COMERCIALIZACAO.value}&ano={ano}'
-        url = BASE_URL + args
-
-        HEADERS = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-        }
-
-        response = requests.get(url, headers=HEADERS, timeout=20)
-        response.raise_for_status() # lança exceção se algo deu errado
-        html = response.text
-    except:
-        path = SAVING_PATH_COMERCIALIZACAO + '/'
-        file_name = f'comercializacao{ano}.html'
-        html = open(path + file_name).read()
-    
-    scrap = Scraping()
-    data = scrap.extrac_table(html)
-    response_data = json.dumps(data, ensure_ascii=False)
-    return Response(response_data, status=200, mimetype='application/json')
-
+        controller = App_controller()
+        data = controller.comercializacao(request)
+        return data, 200
+        
+    except Exception as e:
+        return jsonify({'msg': str(e)}), 500
 
 
 @app.route('/producao', methods=['GET'])
@@ -143,6 +120,9 @@ def exportacao():
 
     arg_subopc = request.args.get('subopc', type=str)
 
+    if not arg_subopc:
+        return jsonify({'msg': f"The argument 'subopc' is required!"}), 500
+
     if (arg_subopc not in SUB_EXPORTACAO.keys()):
         return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
 
@@ -175,6 +155,7 @@ def exportacao():
     return Response(response_data, status=200, mimetype='application/json')
 
 
+
 @app.route('/importacao', methods=['GET'])
 @jwt_required()
 def importacao():
@@ -185,6 +166,9 @@ def importacao():
         return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
 
     arg_subopc = request.args.get('subopc', type=str)
+
+    if not arg_subopc:
+        return jsonify({'msg': f"The argument 'subopc' is required!"}), 500
 
     if (arg_subopc not in SUB_IMPORTACAO.keys()):
         return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
@@ -225,6 +209,13 @@ def processamento():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
     arg_subopc = request.args.get('subopc', type=str)
+
+    if not arg_subopc:
+        return jsonify({'msg': f"The argument 'subopc' is required!"}), 500
+
+    if arg_subopc not in SUB_PROCESSAMENTO.keys():
+        return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
+
     subopc = SUB_PROCESSAMENTO[arg_subopc]
 
     if ano < 1970 or ano > 2023:
