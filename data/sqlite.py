@@ -1,5 +1,6 @@
 from .models.user import User
 import sqlite3
+from hashlib import sha256
 from pathlib import Path
 
 
@@ -49,7 +50,8 @@ class Connection:
 
 
         try:
-            cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
+            hash_pass = sha256(password.encode()).hexdigest()
+            cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hash_pass))
             conn.commit()
         except sqlite3.IntegrityError:
             raise ValueError(f"Email {email} já cadastrado!")
@@ -60,7 +62,7 @@ class Connection:
         """Busca um usuário pelo email."""
         conn = self._connect()
         cursor = conn.cursor()
-        hash_passw = password
+        hash_passw = sha256(password.encode()).hexdigest()
         cursor.execute("SELECT email, password FROM users WHERE email = ? and password = ?", (email, hash_passw))
         result = cursor.fetchone()
 

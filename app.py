@@ -2,14 +2,14 @@ from flask import Flask, request, Response, jsonify
 from flask_jwt_extended import \
     JWTManager, \
     create_access_token, \
-    jwt_required, \
-    get_jwt_identity
+    jwt_required
 
 
 from data.sqlite import Connection
 from dotenv import load_dotenv
 import json
 import requests
+import os
 from datetime import timedelta
 from src.scraping.scrap import Scraping
 from src.scrap_parameters import \
@@ -27,7 +27,7 @@ from src.scrap_parameters import \
 conn = Connection()
 load_dotenv()
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'aeesdfasdfasdfasfd'
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)
 
@@ -66,6 +66,10 @@ def signin():
 def comercializacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
+
+    if ano < 1970 or ano > 2023:
+        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
+
     html = ''
     # tenta fazer a requisição para o site da embrapa
     try:
@@ -96,6 +100,10 @@ def comercializacao():
 def producao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
+
+    if ano < 1970 or ano > 2023:
+        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
+    
     html = ''
     # tenta fazer a requisição para o site da embrapa
     try:
@@ -129,7 +137,15 @@ def producao():
 def exportacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
+
+    if ano < 1970 or ano > 2023:
+        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
+
     arg_subopc = request.args.get('subopc', type=str)
+
+    if (arg_subopc not in SUB_EXPORTACAO.keys()):
+        return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
+
     subopc = SUB_EXPORTACAO[arg_subopc]
     html = ''
     try:
@@ -164,7 +180,15 @@ def exportacao():
 def importacao():
     ano = request.args.get('ano', type=int)
     ano = ano or 2023
+
+    if ano < 1970 or ano > 2023:
+        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
+
     arg_subopc = request.args.get('subopc', type=str)
+
+    if (arg_subopc not in SUB_IMPORTACAO.keys()):
+        return jsonify({'msg': f"The sub-option '{arg_subopc}' does not exist!"}), 500
+
     subopc = SUB_IMPORTACAO[arg_subopc]
     html = ''
     try:
@@ -202,6 +226,10 @@ def processamento():
     ano = ano or 2023
     arg_subopc = request.args.get('subopc', type=str)
     subopc = SUB_PROCESSAMENTO[arg_subopc]
+
+    if ano < 1970 or ano > 2023:
+        return jsonify({'msg': 'year must be in the range 1970 <= year <= 2023'}), 500
+
     html = ''
     try:
         url_skeleton    = BASE_URL + '?opcao={}&ano={}&subopcao={}'
