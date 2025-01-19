@@ -9,6 +9,7 @@ from datetime import timedelta
 app = Flask(__name__)
 
 conn = Connection()
+conn.create_database()
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)

@@ -39,7 +39,6 @@ class Connection:
         """
         self.db_path        = Path("data/storage/database.db")
         self._connection    = None
-        self.create_database()
 
     def _connect(self):
         """
@@ -49,7 +48,7 @@ class Connection:
             sqlite3.Connection: A conexão ativa com o banco de dados.
         """
         if not self._connection:
-            self._connection = sqlite3.connect(self.db_path)
+            self._connection = sqlite3.connect(self.db_path, check_same_thread=False)
         return self._connection
 
     def create_database(self) -> None:
@@ -125,6 +124,7 @@ class Connection:
         Raises:
             ValueError: Se o email ou a senha forem inválidos.
         """
+
         conn        = self._connect()
         cursor      = conn.cursor()
         hash_pass   = sha256(password.encode()).hexdigest()  # Hash da senha
