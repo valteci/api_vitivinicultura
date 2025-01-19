@@ -5,34 +5,67 @@ from pathlib import Path
 
 
 class Connection:
-    _instance = None  # Atributo para o singleton
+    """
+    Gerencia a conexão com o banco de dados SQLite.
+
+    Implementa o padrão Singleton para garantir que apenas uma instância da conexão 
+    exista. Esta classe fornece métodos para criar o banco de dados, adicionar 
+    novos usuários e validar credenciais de usuários.
+
+    Attributes:
+        db_path (Path): O caminho do arquivo do banco de dados.
+        _connection (sqlite3.Connection): A conexão ativa com o banco de dados.
+    """
+    _instance = None  # Atributo para o padrão Singleton
 
     def __new__(cls, *args, **kwargs):
-        """Implementação do padrão Singleton"""
+        """
+        Garante que apenas uma instância da classe seja criada.
+
+        Returns:
+            Connection: A instância única da classe.
+        """
         if not cls._instance:
             cls._instance = super(Connection, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self):
-        """Inicializa o caminho do banco de dados."""
+        """
+        Inicializa o caminho do banco de dados e a conexão.
+
+        O banco de dados está localizado no diretório 'data/storage/' e é chamado
+        'database.db'.
+        """
         self.db_path        = Path("data/storage/database.db")
         self._connection    = None
 
-
-
     def _connect(self):
-        """Estabelece uma conexão com o banco de dados."""
+        """
+        Estabelece e retorna a conexão com o banco de dados.
+
+        Returns:
+            sqlite3.Connection: A conexão ativa com o banco de dados.
+        """
         if not self._connection:
             self._connection = sqlite3.connect(self.db_path)
         return self._connection
 
-
     def create_database(self) -> None:
-        """Cria o banco de dados e a tabela de usuários, caso não exista."""
+        """
+        Cria o banco de dados e a tabela de usuários, caso ainda não existam.
+
+        A tabela de usuários possui os seguintes campos:
+        - id: Identificador único (INTEGER, PRIMARY KEY).
+        - email: Endereço de email único (TEXT, NOT NULL).
+        - password: Senha do usuário (TEXT, NOT NULL).
+        """
         if not self.db_path.exists():
-            self.db_path.parent.mkdir(exist_ok=True, parents=True)  # Garante que o diretório existe
-            conn = self._connect()
-            cursor = conn.cursor()
+            # Cria o diretório, se necessário
+            self.db_path.parent.mkdir(exist_ok=True, parents=True)
+
+            conn    = self._connect()
+            cursor  = conn.cursor()
+
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,39 +73,70 @@ class Connection:
                     password TEXT NOT NULL
                 )
             ''')
+
             conn.commit()
 
-
-
     def create_user(self, email: str, password: str) -> None:
-        """Adiciona um novo usuário ao banco de dados."""
+        """
+        Adiciona um novo usuário ao banco de dados.
+
+        Args:
+            email (str): O endereço de email do usuário.
+            password (str): A senha do usuário.
+
+        Raises:
+            ValueError: Se os campos 'email' ou 'password' estiverem ausentes 
+                        ou se o email já estiver registrado.
+        """
+        if not email or not password:
+            raise ValueError("Missing fields: 'email' or 'password'!")
+
         conn = self._connect()
         cursor = conn.cursor()
-        if email == None or password == None:
-            raise ValueError(
-                "Missing fields: 'email' or 'password'!"
+        try:
+            # Hash da senha
+            hash_pass = sha256(password.encode()).hexdigest()
+
+            cursor.execute(
+                "INSERT INTO users (email, password) "
+                "VALUES (?, ?)",
+                (email, hash_pass)
             )
 
-        try:
-            hash_pass = sha256(password.encode()).hexdigest()
-            cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hash_pass))
             conn.commit()
         except sqlite3.IntegrityError:
             raise ValueError(f"Email {email} is already registered!")
         except Exception as e:
             raise ValueError(str(e))
 
-
-
     def validate_user(self, email: str, password: str) -> User:
-        """Busca um usuário pelo email."""
-        conn = self._connect()
-        cursor = conn.cursor()
-        hash_passw = sha256(password.encode()).hexdigest()
-        cursor.execute("SELECT email, password FROM users WHERE email = ? and password = ?", (email, hash_passw))
+        """
+        Valida as credenciais de um usuário.
+
+        Args:
+            email (str): O endereço de email do usuário.
+            password (str): A senha do usuário.
+
+        Returns:
+            User: O objeto User correspondente ao email e senha fornecidos.
+
+        Raises:
+            ValueError: Se o email ou a senha forem inválidos.
+        """
+        conn        = self._connect()
+        cursor      = conn.cursor()
+        hash_pass   = sha256(password.encode()).hexdigest()  # Hash da senha
+
+        cursor.execute(
+            "SELECT email, password "
+            "FROM users "
+            "WHERE email = ? AND password = ?",
+            (email, hash_pass)
+        )
+
         result = cursor.fetchone()
 
         if result:
-            return User(email=result[0], password=result[1])
+            return User(email = result[0], password = result[1])
         else:
-            raise ValueError(f"Invalid username or password!")
+            raise ValueError("Invalid username or password!")
