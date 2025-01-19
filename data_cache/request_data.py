@@ -3,200 +3,210 @@ from requests.exceptions import RequestException
 from time import sleep
 from random import randint
 
-from environments.scrap_parameters import \
-    Opcao, \
-    SUB_PROCESSAMENTO, \
-    SUB_IMPORTACAO, \
-    SUB_EXPORTACAO, \
-    BASE_URL, \
-    MAX_YEAR, \
-    MIN_YEAR
+from environments.scrap_parameters import (
+    Opcao,
+    SUB_PROCESSAMENTO,
+    SUB_IMPORTACAO,
+    SUB_EXPORTACAO,
+    BASE_URL,
+    MAX_YEAR,
+    MIN_YEAR,
+    HEADERS
+)
+
 
 class Request_data:
-    def __init__(self):
-        pass
+    """
+    Classe responsável por gerenciar as requisições de páginas HTML do site.
 
-    HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    }
+    Essa classe implementa métodos para baixar dados de várias categorias (produção,
+    processamento, comercialização, importação e exportação). Inclui um sistema
+    robusto de requisições, com tentativas repetidas em caso de falhas e
+    espera aleatória entre as requisições para evitar sobrecarregar o site.
+
+    """
+
+
+    def __init__(self):
+        """
+        Inicializa uma instância da classe Request_data.
+        """
+        pass
 
 
     def request_producao(self) -> list[tuple]:
+        """
+        Realiza requisições para obter dados de produção.
+
+        Returns:
+            list[tuple]: Lista de tuplas contendo o HTML da página e o ano correspondente.
+        """
         html_pages = []
-    
+
         for ano in range(MIN_YEAR, MAX_YEAR + 1):
-            url = BASE_URL + '?ano=' + str(ano) + '&opcao=' + Opcao.PRODUCAO.value
-            success = False  # Flag para indicar sucesso
-            attempt = 0      # Contador de tentativas
-            
-            while not success:  # Tentativas indefinidas até obter sucesso
+            url = BASE_URL + f"?ano={ano}&opcao={Opcao.PRODUCAO.value}"
+            success = False
+            attempt = 0
+
+            while not success:
                 try:
                     attempt += 1
                     print(f"Tentativa {attempt} para o ano {ano}...")
-                    self.wait()  # Espera de 10 a 15 segundos
-                    response = requests.get(url, headers=self.HEADERS, timeout=20)
-                    response.raise_for_status()  # Lança exceção para códigos de erro HTTP
-                    html_content = response.text
-                    page = (html_content, ano)
-                    html_pages.append(page)
-                    print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
-                    success = True  # Requisição bem-sucedida, sai do loop
-                except requests.HTTPError as http_err:
-                    print(f"Erro HTTP para o ano {ano}: {http_err}")
-                except requests.Timeout:
-                    print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
-                except RequestException as req_err:
-                    print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
-                finally:
-                    if not success:
-                        print("Tentando novamente...")
+                    self.wait()
+                    response = requests.get(url, headers=HEADERS, timeout=20)
+                    response.raise_for_status()
+                    html_pages.append((response.text, ano))
+                    print(f"Requisição para o ano {ano} bem-sucedida.")
+                    success = True
+                except requests.RequestException as e:
+                    print(f"Erro na tentativa {attempt} para o ano {ano}: {e}")
+                    print("Tentando novamente...")
 
         return html_pages
 
 
     def request_processamento(self):
-        html_pages = {}
-        url_parte_fixa = f'{BASE_URL}?opcao={Opcao.PROCESSAMENTO.value}'
+        """
+        Realiza requisições para obter dados de processamento.
+
+        Yields:
+            dict: Um dicionário onde a chave é a subopção e o valor é uma lista de
+            tuplas contendo o HTML da página e o ano correspondente.
+        """
+        url_parte_fixa = f"{BASE_URL}?opcao={Opcao.PROCESSAMENTO.value}"
         for subopc in SUB_PROCESSAMENTO:
-            url_opcao = f'{url_parte_fixa}&subopcao={SUB_PROCESSAMENTO[subopc]}'
-            html_pages[subopc] = []
+            html_pages = []
+            url_opcao = f"{url_parte_fixa}&subopcao={SUB_PROCESSAMENTO[subopc]}"
+
             for ano in range(MIN_YEAR, MAX_YEAR + 1):
-                url = f'{url_opcao}&ano={ano}'
-                success = False  # Flag para indicar sucesso
-                attempt = 0      # Contador de tentativas
-                
+                url = f"{url_opcao}&ano={ano}"
+                success = False
+                attempt = 0
+
                 while not success:
                     try:
                         attempt += 1
-                        print(f"Tentativa {attempt} para o ano {ano}...")
-                        self.wait()  # Espera de 10 a 15 segundos
-                        response = requests.get(url, headers=self.HEADERS, timeout=20)
-                        response.raise_for_status()  # Lança exceção para códigos de erro HTTP
-                        html_content = response.text
-                        page = (html_content, ano)
-                        html_pages[subopc].append(page)
-                        print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
-                        success = True  # Requisição bem-sucedida, sai do loop
-                    except requests.HTTPError as http_err:
-                        print(f"Erro HTTP para o ano {ano}: {http_err}")
-                    except requests.Timeout:
-                        print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
-                    except RequestException as req_err:
-                        print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
-                    finally:
-                        if not success:
-                            print("Tentando novamente...")
-                
-            yield ({subopc: html_pages[subopc]})
+                        print(f"Tentativa {attempt} para o ano {ano}, subopção {subopc}...")
+                        self.wait()
+                        response = requests.get(url, headers=HEADERS, timeout=20)
+                        response.raise_for_status()
+                        html_pages.append((response.text, ano))
+                        print(f"Requisição para o ano {ano}, subopção {subopc} bem-sucedida.")
+                        success = True
+                    except requests.RequestException as e:
+                        print(f"Erro na tentativa {attempt} para o ano {ano}, subopção {subopc}: {e}")
+                        print("Tentando novamente...")
+
+            yield {subopc: html_pages}
 
 
     def request_comercializacao(self) -> list[tuple]:
+        """
+        Realiza requisições para obter dados de comercialização.
+
+        Returns:
+            list[tuple]: Lista de tuplas contendo o HTML da página e o ano correspondente.
+        """
         html_pages = []
-    
+
         for ano in range(MIN_YEAR, MAX_YEAR + 1):
-            url = BASE_URL + '?ano=' + str(ano) + '&opcao=' + Opcao.COMERCIALIZACAO.value
-            success = False  # Flag para indicar sucesso
-            attempt = 0      # Contador de tentativas
-            
-            while not success:  # Tentativas indefinidas até obter sucesso
+            url = BASE_URL + f"?ano={ano}&opcao={Opcao.COMERCIALIZACAO.value}"
+            success = False
+            attempt = 0
+
+            while not success:
                 try:
                     attempt += 1
                     print(f"Tentativa {attempt} para o ano {ano}...")
-                    self.wait()  # Espera de 10 a 15 segundos
-                    response = requests.get(url, headers=self.HEADERS, timeout=20)
-                    response.raise_for_status()  # Lança exceção para códigos de erro HTTP
-                    html_content = response.text
-                    page = (html_content, ano)
-                    html_pages.append(page)
-                    print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
-                    success = True  # Requisição bem-sucedida, sai do loop
-                except requests.HTTPError as http_err:
-                    print(f"Erro HTTP para o ano {ano}: {http_err}")
-                except requests.Timeout:
-                    print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
-                except RequestException as req_err:
-                    print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
-                finally:
-                    if not success:
-                        print("Tentando novamente...")
+                    self.wait()
+                    response = requests.get(url, headers=HEADERS, timeout=20)
+                    response.raise_for_status()
+                    html_pages.append((response.text, ano))
+                    print(f"Requisição para o ano {ano} bem-sucedida.")
+                    success = True
+                except requests.RequestException as e:
+                    print(f"Erro na tentativa {attempt} para o ano {ano}: {e}")
+                    print("Tentando novamente...")
 
         return html_pages
 
 
     def request_importacao(self):
-        html_pages = {}
-        url_parte_fixa = f'{BASE_URL}?opcao={Opcao.IMPORTACAO.value}'
+        """
+        Realiza requisições para obter dados de importação.
+
+        Yields:
+            dict: Um dicionário onde a chave é a subopção e o valor é uma lista de
+            tuplas contendo o HTML da página e o ano correspondente.
+        """
+        url_parte_fixa = f"{BASE_URL}?opcao={Opcao.IMPORTACAO.value}"
         for subopc in SUB_IMPORTACAO:
-            url_opcao = f'{url_parte_fixa}&subopcao={SUB_IMPORTACAO[subopc]}'
-            html_pages[subopc] = []
+            html_pages = []
+            url_opcao = f"{url_parte_fixa}&subopcao={SUB_IMPORTACAO[subopc]}"
+
             for ano in range(MIN_YEAR, MAX_YEAR + 1):
-                url = f'{url_opcao}&ano={ano}'
-                success = False  # Flag para indicar sucesso
-                attempt = 0      # Contador de tentativas
-                
+                url = f"{url_opcao}&ano={ano}"
+                success = False
+                attempt = 0
+
                 while not success:
                     try:
                         attempt += 1
-                        print(f"Tentativa {attempt} para o ano {ano}...")
-                        self.wait()  # Espera de 10 a 15 segundos
-                        response = requests.get(url, headers=self.HEADERS, timeout=20)
-                        response.raise_for_status()  # Lança exceção para códigos de erro HTTP
-                        html_content = response.text
-                        page = (html_content, ano)
-                        html_pages[subopc].append(page)
-                        print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
-                        success = True  # Requisição bem-sucedida, sai do loop
-                    except requests.HTTPError as http_err:
-                        print(f"Erro HTTP para o ano {ano}: {http_err}")
-                    except requests.Timeout:
-                        print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
-                    except RequestException as req_err:
-                        print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
-                    finally:
-                        if not success:
-                            print("Tentando novamente...")
-                
-            yield ({subopc: html_pages[subopc]})
+                        print(f"Tentativa {attempt} para o ano {ano}, subopção {subopc}...")
+                        self.wait()
+                        response = requests.get(url, headers=HEADERS, timeout=20)
+                        response.raise_for_status()
+                        html_pages.append((response.text, ano))
+                        print(f"Requisição para o ano {ano}, subopção {subopc} bem-sucedida.")
+                        success = True
+                    except requests.RequestException as e:
+                        print(f"Erro na tentativa {attempt} para o ano {ano}, subopção {subopc}: {e}")
+                        print("Tentando novamente...")
+
+            yield {subopc: html_pages}
 
 
     def request_exportacao(self):
-        html_pages = {}
-        url_parte_fixa = f'{BASE_URL}?opcao={Opcao.EXPORTACAO.value}'
+        """
+        Realiza requisições para obter dados de exportação.
+
+        Yields:
+            dict: Um dicionário onde a chave é a subopção e o valor é uma lista de
+            tuplas contendo o HTML da página e o ano correspondente.
+        """
+        url_parte_fixa = f"{BASE_URL}?opcao={Opcao.EXPORTACAO.value}"
         for subopc in SUB_EXPORTACAO:
-            url_opcao = f'{url_parte_fixa}&subopcao={SUB_EXPORTACAO[subopc]}'
-            html_pages[subopc] = []
+            html_pages = []
+            url_opcao = f"{url_parte_fixa}&subopcao={SUB_EXPORTACAO[subopc]}"
+
             for ano in range(MIN_YEAR, MAX_YEAR + 1):
-                url = f'{url_opcao}&ano={ano}'
-                success = False  # Flag para indicar sucesso
-                attempt = 0      # Contador de tentativas
-                
+                url = f"{url_opcao}&ano={ano}"
+                success = False
+                attempt = 0
+
                 while not success:
                     try:
                         attempt += 1
-                        print(f"Tentativa {attempt} para o ano {ano}...")
-                        self.wait()  # Espera de 10 a 15 segundos
-                        response = requests.get(url, headers=self.HEADERS, timeout=20)
-                        response.raise_for_status()  # Lança exceção para códigos de erro HTTP
-                        html_content = response.text
-                        page = (html_content, ano)
-                        html_pages[subopc].append(page)
-                        print(f"Requisição para o ano {ano} bem-sucedida na tentativa {attempt}.")
-                        success = True  # Requisição bem-sucedida, sai do loop
-                    except requests.HTTPError as http_err:
-                        print(f"Erro HTTP para o ano {ano}: {http_err}")
-                    except requests.Timeout:
-                        print(f"Erro de timeout na tentativa {attempt} para o ano {ano}.")
-                    except RequestException as req_err:
-                        print(f"Erro geral na tentativa {attempt} para o ano {ano}: {req_err}")
-                    finally:
-                        if not success:
-                            print("Tentando novamente...")
-                
-            yield ({subopc: html_pages[subopc]})
+                        print(f"Tentativa {attempt} para o ano {ano}, subopção {subopc}...")
+                        self.wait()
+                        response = requests.get(url, headers=HEADERS, timeout=20)
+                        response.raise_for_status()
+                        html_pages.append((response.text, ano))
+                        print(f"Requisição para o ano {ano}, subopção {subopc} bem-sucedida.")
+                        success = True
+                    except requests.RequestException as e:
+                        print(f"Erro na tentativa {attempt} para o ano {ano}, subopção {subopc}: {e}")
+                        print("Tentando novamente...")
 
+            yield {subopc: html_pages}
 
 
     def wait(self):
+        """
+        Aguarda um tempo aleatório entre as requisições.
+
+        O tempo de espera varia entre 10 e 15 segundos.
+        """
         MIN_TIME = 10
         MAX_TIME = 15
         wait_time = randint(MIN_TIME, MAX_TIME)
