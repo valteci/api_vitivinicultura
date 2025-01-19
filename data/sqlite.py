@@ -31,13 +31,15 @@ class Connection:
 
     def __init__(self):
         """
-        Inicializa o caminho do banco de dados e a conexão.
+        Inicializa o caminho do banco de dados, a conexão
+        e cria o banco, caso não exista.
 
         O banco de dados está localizado no diretório 'data/storage/' e é chamado
         'database.db'.
         """
         self.db_path        = Path("data/storage/database.db")
         self._connection    = None
+        self.create_database()
 
     def _connect(self):
         """
