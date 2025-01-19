@@ -102,3 +102,7 @@ def processamento():
         return jsonify({'msg': str(e)}), 500
 
 
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'msg': 'Route not found'}), 404
