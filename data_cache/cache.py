@@ -1,7 +1,7 @@
 from request_data import Request_data
 import os
 
-from src.scrap_parameters import \
+from environments.scrap_parameters import \
     SAVING_PATH_PRODUCAO, \
     SAVING_PATH_COMERCIALIZACAO
 

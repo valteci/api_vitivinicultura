@@ -1,5 +1,5 @@
 from src.scraping.scrap import Scraping
-from src.scrap_parameters import (
+from environments.scrap_parameters import (
     BASE_URL,
     Opcao,
     SAVING_PATH_IMPORTACAO,

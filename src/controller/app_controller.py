@@ -8,7 +8,7 @@ from src.utils import (
     processamento,
 )
 
-from src.scrap_parameters import (
+from environments.scrap_parameters import (
     MAX_YEAR,
     MIN_YEAR,
     SUB_EXPORTACAO,
