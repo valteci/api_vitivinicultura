@@ -15,8 +15,8 @@ class Connection:
 
     def __init__(self):
         """Inicializa o caminho do banco de dados."""
-        self.db_path = Path("data/storage/database.db")
-        self._connection = None
+        self.db_path        = Path("data/storage/database.db")
+        self._connection    = None
 
 
 

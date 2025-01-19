@@ -1,7 +1,7 @@
 class User:
     def __init__(self, email: str, password: str):
-        self._email = email
-        self._password = password
+        self._email     = email
+        self._password  = password
 
     @property
     def email(self) -> str:

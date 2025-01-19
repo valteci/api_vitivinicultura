@@ -35,7 +35,11 @@ class Cache:
             self.save_exportacao(paginas)
 
     def update_todos(self):
-        pass
+        self.update_producao()
+        self.update_comercializacao()
+        self.update_exportacao()
+        self.update_importacao()
+        self.update_processamento()
 
     def save_producao(self, html_pages: list[tuple]):
         folder = os.path.abspath('.') + SAVING_PATH_PRODUCAO

@@ -9,8 +9,7 @@ from datetime import timedelta
 app = Flask(__name__)
 
 conn = Connection()
-#app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-app.config['JWT_SECRET_KEY'] = 'SAJDFHASHFASHF8E9YTEFHAOSPD'
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)
 
@@ -88,7 +87,6 @@ def importacao():
 
     except Exception as e:
         return jsonify({'msg': str(e)}), 500
-
 
 
 
