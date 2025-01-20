@@ -1,6 +1,6 @@
 from flask_jwt_extended import create_access_token
 
-from src.utils import (
+from src.requests_html import (
     comercializacao,
     producao,
     exportacao,
