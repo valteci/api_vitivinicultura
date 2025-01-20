@@ -7,7 +7,7 @@ Esta API foi desenvolvida como parte do Tech Challenge da pós-graduação em Ma
 - Importação
 - Exportação
 
-O objetivo principal é fornecer uma API pública para consulta desses dados, que podem futuramente ser utilizados em modelos de Machine Learning. A API foi implantada no [render](https://render.com) e está disponível no seguinte link: [url] 
+O objetivo principal é fornecer uma API pública para consulta desses dados, que podem futuramente ser utilizados em modelos de Machine Learning. A API foi implantada no [render](https://render.com) e está disponível na seguinte url: https://api-vitivinicultura.onrender.com
 
 ## COMO RODAR LOCALMENTE
 
