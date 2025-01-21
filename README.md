@@ -237,3 +237,7 @@ Foram usadas as seguintes tecnologias para a construção e implantação dessa 
    - [render](https://render.com/)
    - [JWT](https://jwt.io/)
    - [Beautiful Soup](https://pypi.org/project/beautifulsoup4/)
+
+
+## RETORNO DE DADOS
+A API retorna os dados da vitivinicultura em JSON de forma que possa ser convertido diretamente em um dataframe. Isso porque as chaves do JSON são os nomes das colunas e cada chave mapeia para uma lista que contém todos os dados daquela coluna, assim como funciona em um dataframe. Isso foi feito pois facilita a integração dessa API com modelos de machine learning, por exemplo.
